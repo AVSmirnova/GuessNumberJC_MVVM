@@ -1,5 +1,6 @@
 package com.example.guessnumberjc_mvvm
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,18 +14,19 @@ class GuessNumberViewModel : ViewModel() {
     val iuState: StateFlow<GuessUiState> = _uiState.asStateFlow()
 
     private var hiddenNumber = -1
-    private val maxAttempts = 5
-    val maxNumber = 10
+
 
     init {
         startGame()
     }
     fun startGame(){
-        hiddenNumber = Random.nextInt(maxNumber)
+        hiddenNumber = Random.nextInt(0,_uiState.value.maxNumber+1)
+        Log.i("happy",hiddenNumber.toString())
         _uiState.update {
             GuessUiState(
                 gameState = GameState.ACTIVE,
-                attempts = maxAttempts)
+                attemptsLeft = it.maxAttempts
+            )
         }
     }
 
@@ -69,14 +71,14 @@ class GuessNumberViewModel : ViewModel() {
             }
         }
         else{
-            val remainingAttempts = currentState.attempts - 1
+            val remainingAttempts = currentState.attemptsLeft - 1
 
             if (remainingAttempts <= 0) {
                 _uiState.update {
                     it.copy(
                         message = "Попытки закончились. Вы проиграли.\n Загаданное число $hiddenNumber",
                         gameState = GameState.LOSE,
-                        attempts = 0
+                        attemptsLeft = 0
                     )
                 }
             } else {
@@ -89,7 +91,7 @@ class GuessNumberViewModel : ViewModel() {
                 _uiState.update {
                     it.copy(
                         message = hint,
-                        attempts = remainingAttempts
+                        attemptsLeft = remainingAttempts
                     )
                 }
             }

@@ -40,7 +40,7 @@ fun GuessNumberScreen(
             when(uiState.gameState){
 
                 GameState.ACTIVE -> {
-                    Header(10)
+                    Header(uiState.maxNumber)
                         AppTextField(
                             message = uiState.input,
                             onBtnClick = viewModel::onInputChanged,
@@ -60,12 +60,12 @@ fun GuessNumberScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        Text("Осталось попыток: ${uiState.attempts}")
+                        Text("Осталось попыток: ${uiState.attemptsLeft}")
                 }
 
                 GameState.WIN -> {
                     Text(
-                    text = "Победа!",
+                    text = uiState.message,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -85,7 +85,7 @@ fun GuessNumberScreen(
 
                 GameState.LOSE -> {
                 Text(
-                    text = "Проигрыш",
+                    text = uiState.message,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
