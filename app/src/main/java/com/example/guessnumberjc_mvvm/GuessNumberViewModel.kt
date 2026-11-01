@@ -17,15 +17,30 @@ class GuessNumberViewModel : ViewModel() {
 
 
     init {
-        startGame()
+        firstStartGame()
     }
-    fun startGame(){
-        hiddenNumber = Random.nextInt(0,_uiState.value.maxNumber+1)
+    fun firstStartGame(){
+       startGame(
+           maxNumber = _uiState.value.maxNumber,
+           maxAttempts = _uiState.value.maxAttempts
+       )
+    }
+    private fun startGame(
+        maxNumber: Int,
+        maxAttempts: Int
+    ) {
+        hiddenNumber = Random.nextInt(0, maxNumber + 1)
         Log.i("happy",hiddenNumber.toString())
+
         _uiState.update {
-            GuessUiState(
+            it.copy(
+                maxNumber = maxNumber,
+                maxAttempts = maxAttempts,
+                input = "",
+                message = "",
                 gameState = GameState.ACTIVE,
-                attemptsLeft = it.maxAttempts
+                attemptsLeft = maxAttempts,
+                isSettingsDialogVisible = false
             )
         }
     }
@@ -36,9 +51,14 @@ class GuessNumberViewModel : ViewModel() {
             it.copy(input=filtered)
         }
     }
+    //неверно, для каждого текстфилда надо делать свою очистку
     fun clearInput() {
         _uiState.update {
-            it.copy(input = "")
+            it.copy(input = "",
+                settings = it.settings.copy(
+                    maxNumberText ="",
+                    maxAttemptsText = "")
+            )
         }
     }
 
@@ -98,6 +118,80 @@ class GuessNumberViewModel : ViewModel() {
         }
 
     }
+    fun openSettings() {
+        _uiState.update {
+            it.copy(
+                isSettingsDialogVisible = true,
+                settings = SettingsUiState(
+                    maxNumberText = it.maxNumber.toString(),
+                    maxAttemptsText = it.maxAttempts.toString(),
+                    error = ""
+                )
+            )
+        }
+    }
+
+    fun closeSettings() {
+        _uiState.update {
+            it.copy(isSettingsDialogVisible = false)
+        }
+    }
+    fun onSettingsMaxNumberChanged(value: String) {
+        val filtered = value.filter { it.isDigit() }
+
+        _uiState.update {
+            it.copy(
+                settings = it.settings.copy(
+                    maxNumberText = filtered,
+                    error = ""
+                )
+            )
+        }
+    }
+
+    fun onSettingsMaxAttemptsChanged(value: String) {
+        val filtered = value.filter { it.isDigit() }
+
+        _uiState.update {
+            it.copy(
+                settings = it.settings.copy(
+                    maxAttemptsText = filtered,
+                    error = ""
+                )
+            )
+        }
+    }
+    fun saveSettings() {
+        val currentState = _uiState.value
+
+        val maxNumber = currentState.settings.maxNumberText.toIntOrNull()
+        val maxAttempts = currentState.settings.maxAttemptsText.toIntOrNull()
+
+        if (maxNumber == null || maxNumber < 0) {
+            _uiState.update {
+                it.copy(
+                    settings = it.settings.copy(
+                        error = "Максимальное число должно быть не меньше 0"
+                    )
+                )
+            }
+            return
+        }
+
+        if (maxAttempts == null || maxAttempts < 1) {
+            _uiState.update {
+                it.copy(
+                    settings = it.settings.copy(
+                        error = "Количество попыток должно быть не меньше 1"
+                    )
+                )
+            }
+            return
+        }
+        startGame(maxNumber,maxAttempts)
+
+    }
 
 
-}
+
+    }
